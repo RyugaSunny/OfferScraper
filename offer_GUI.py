@@ -1,15 +1,22 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout, QStackedWidget, QLabel, QVBoxLayout, QHBoxLayout, QScrollArea, QFrame, QGridLayout
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout, QStackedWidget, QLabel, QVBoxLayout, QHBoxLayout, QScrollArea, QFrame, QGridLayout, QProgressBar
 from PyQt6.QtGui import QIcon, QPixmap
-from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtCore import Qt, QUrl, QThread, pyqtSignal
 from PyQt6.QtGui import QDesktopServices
 import os
 import pandas as pd
 
+class OfferScraperThread(QThread):
+    finished = pyqtSignal()
+
+    def run(self):
+        exec(open('offertag.py').read())
+        self.finished.emit()
+
 class OfferGUI(QMainWindow):
     def __init__(self):
         super().__init__()
-        exec(open('offertag.py').read())
+        # exec(open('offertag.py').read())
         print("Loading offers...")
         self.setWindowTitle("Offers")
         self.setWindowIcon(QIcon(os.path.join('assets','icon.png')))
@@ -19,6 +26,17 @@ class OfferGUI(QMainWindow):
 
     def initUI(self):
         layout = QVBoxLayout()
+        
+        # Add refresh button
+        refresh_button = QPushButton("Refresh")
+        refresh_button.clicked.connect(self.refresh_offers)
+        layout.addWidget(refresh_button)
+
+        # Add progress bar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        layout.addWidget(self.progress_bar)
+
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         container = QWidget()
@@ -27,6 +45,7 @@ class OfferGUI(QMainWindow):
         container_layout.setHorizontalSpacing(10)
         container_layout.setVerticalSpacing(10)
 
+        self.container_layout = container_layout  # Save reference to layout
         self.load_offers(container_layout)
 
         scroll.setWidget(container)
@@ -44,7 +63,8 @@ class OfferGUI(QMainWindow):
 
             # Create a label for the image
             image_label = QLabel()
-            pixmap = QPixmap(os.path.join('assets', 'default_image.png'))  # Assuming a default image
+            title = row['title']
+            pixmap = QPixmap(os.path.join('assets', f'{title}.png'))  # Assuming a default image
             image_label.setPixmap(pixmap)
             image_label.setScaledContents(True)
             image_label.setFixedHeight(100)  # Adjusted height to fit more items vertically
@@ -85,6 +105,25 @@ class OfferGUI(QMainWindow):
             if col_position >= 2:  # Adjusted to fit 2 items per row
                 col_position = 0
                 row_position += 1
+
+    def refresh_offers(self):
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setRange(0, 0)  # Set to indeterminate mode
+        self.scraper_thread = OfferScraperThread()
+        self.scraper_thread.finished.connect(self.on_scraper_finished)
+        self.scraper_thread.start()
+
+    def on_scraper_finished(self):
+        # Clear existing offers
+        for i in reversed(range(self.container_layout.count())):
+            widget = self.container_layout.itemAt(i).widget()
+            if widget is not None:
+                widget.deleteLater()
+        
+        # Reload offers
+        self.load_offers(self.container_layout)
+        self.progress_bar.setVisible(False)
+        print("Offers refreshed!")
 
     def open_link(self, event, url):
         if event.button() == Qt.MouseButton.LeftButton:

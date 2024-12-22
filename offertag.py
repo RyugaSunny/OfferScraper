@@ -12,7 +12,7 @@ load_dotenv()
 if not os.path.exists('assets'):
     os.makedirs('assets')
 
-database = {"title": [], "price": [], "link": []}
+database = {"title": [], "price": [], "discount": [], "link": []}
 query = 'GB'
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0 Safari/537.36'
@@ -36,6 +36,7 @@ proxy_list = [
 ]
 
 for i in range(1, 3):
+    print(f"Fetching page {i}...")
     proxy = random.choice(proxy_list)
     proxies = {
         "http": proxy,
@@ -63,12 +64,14 @@ for i in range(1, 3):
             valid_title = "".join(x for x in title if x.isalnum() or x in "._- ")
             valid_title = valid_title[1:-7]
             price = i.find('div', class_='new-price').text
+            discount = i.find('div', class_='discount').text
             link = f"https://www.offertag.in" + i.find('a')['href']
             database['title'].append(valid_title)
             database['price'].append(price[2:-1])
             database['link'].append(link)
+            database['discount'].append(discount)
             
-            cover = requests.get(image, headers=headers, proxies=proxies)
+            cover = requests.get(image, headers=headers)
             cover.raise_for_status()
             with open(f'assets/{valid_title}.png', 'wb') as f:
                 f.write(cover.content)
