@@ -17,7 +17,6 @@ class OfferGUI(QMainWindow):
     def __init__(self):
         super().__init__()
         # exec(open('offertag.py').read())
-        print("Loading offers...")
         self.setWindowTitle("Offers")
         self.setWindowIcon(QIcon(os.path.join('assets','icon.png')))
         self.setGeometry(300, 100, 880, 600)
@@ -54,6 +53,7 @@ class OfferGUI(QMainWindow):
         self.setCentralWidget(self.QWidget)
 
     def load_offers(self, layout):
+        print("Loading offers...")
         df = pd.read_csv('offers.csv')
         row_position = 0
         col_position = 0
@@ -106,6 +106,8 @@ class OfferGUI(QMainWindow):
                 col_position = 0
                 row_position += 1
 
+        print("Loading Complete!")
+
     def refresh_offers(self):
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)  # Set to indeterminate mode
@@ -123,7 +125,7 @@ class OfferGUI(QMainWindow):
         # Reload offers
         self.load_offers(self.container_layout)
         self.progress_bar.setVisible(False)
-        print("Offers refreshed!")
+        print("========================Offers refreshed!========================")
 
     def open_link(self, event, url):
         if event.button() == Qt.MouseButton.LeftButton:
