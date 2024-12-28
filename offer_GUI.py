@@ -18,7 +18,7 @@ class OfferGUI(QMainWindow):
         super().__init__()
         # exec(open('offertag.py').read())
         self.setWindowTitle("Offers")
-        self.setWindowIcon(QIcon(os.path.join('assets','icon.png')))
+        # self.setWindowIcon(QIcon(os.path.join('assets','icon.png')))
         self.setGeometry(300, 100, 880, 600)
         self.QWidget = QWidget()
         self.initUI()
@@ -64,7 +64,7 @@ class OfferGUI(QMainWindow):
             # Create a label for the image
             image_label = QLabel()
             title = row['title']
-            pixmap = QPixmap(os.path.join('assets', f'{title}.png'))  # Assuming a default image
+            pixmap = QPixmap(os.path.join('assets', f'{title}.png')) # Assuming image file is named as title.png
             image_label.setPixmap(pixmap)
             image_label.setScaledContents(True)
             image_label.setFixedHeight(100)  # Adjusted height to fit more items vertically
